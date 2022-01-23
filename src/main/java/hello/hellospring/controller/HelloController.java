@@ -27,6 +27,25 @@ public class HelloController {
         return "hello " + name;
     }
 
+    @GetMapping("welcome")
+    @ResponseBody
+    public Welcome welcomeApi(@RequestParam("name") String name) {
+        Welcome welcome = new Welcome();
+        welcome.setUserName(name);
+        return welcome;
+    }
+
+    static class Welcome {
+        private String userName;
+
+        public String getUserName() {
+            return this.userName;
+        }
+
+        public void setUserName(String userName) {
+            this.userName = userName;
+        }
+    }
     //JSON으로 넘어감
     @GetMapping("hello-api")
     @ResponseBody   //이 어노테이션이 붙어있으면 viewResolve를 찾지 않고 바로 리턴값을 응답 body에 넣어서 전송(httpMessageConverter가 동작)
