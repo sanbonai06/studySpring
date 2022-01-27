@@ -13,6 +13,7 @@ public class MemberApp {
         //MemberService memberService = appConfig.memberService();
 
         //AppConfig파일의 Bean어노테이션이 붙은 모든 클래스들을 스프링 컨테이너에 등록시켜서 관리해준다.
+        //ApplicationContext는 인터페이스이다
         ApplicationContext applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
         //첫 번째 인자는 스프링 빈에 등록되는 메서드의 이름, 두 번째 인자는 반환 타입 밑의 코드에서는 MemberService를 반환 할 것이므로 MemberService.class
         MemberService memberService = applicationContext.getBean("memberService", MemberService.class);
