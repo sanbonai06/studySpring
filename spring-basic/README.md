@@ -25,3 +25,59 @@
         OrderService orderService = ac.getBean("orderService", OrderService.class);
 ```
 위의 코드를 넣어준다.
+
+## 싱글톤
+* 싱글톤 패턴을 사용해야 하는 이유: 각 스레드마다의 사용자들이 클라이언트 서비스를 호출한다면 사용자의 수만큼 서비스 인스턴스들이 새롭게 생겨남
+-> 자원낭비
+* 즉, 싱글톤 패턴을 사용하자...
+```
+    //자기 자신을 static으로 가지고 있기 때문에 딱 한개만 가지고 있게 된다.
+    private static final SingletonService instance = new SingletonService();
+
+    //만들어진 싱글톤을 끌어오는 방법
+    public static SingletonService getInstance() {
+        return instance;
+    }
+
+    //프라이빗 생성자로 만들어서 외부에서 호출되는 걸 막음
+    private SingletonService() {
+    }
+```
+* 위 코드와 같이 싱글톤 패턴을 사용하면 문제점들이 발생 (코드자체가 길어짐, OCP, DIP위반 등등...)
+* 하지만 스프링 컨테이너는 스프링 빈 등록시 자동으로 싱글톤으로 등록해준다. (위와 같은 문제들도 해결해줌)
+* @Configuration, @Bean의 어노테이션으로 싱글톤 등록(싱글톤 컨테이너) -> 이미 만들어진 객체에서 인스턴스를 공유하기 때문에 자원을 효과적으로 관리하고 효율적으로 처리할 수 있게됨 
+* 하지만 싱글톤 컨테이너를 사용할 때는 객체의 유지성(state)을  주의해야한다.
+* 예를 들어 A 고객이 주문을 하고, 곧이어 B 고객이 주문을 했다고 가정하자. 뒤이어 A 고객이 주문 내역을 호출했을 때 만약 주문 서비스 객체가 stateful하다면, A 고객의 주문내역은 B 고객의 주문내역으로 바뀌어 있을 것이다. -> 즉, 스프링 빈은 항상
+무상태 (stateless)상태로 설계해야한다.
+* 실제 AppConfig 코드를 보면 memoryRepository()를 여러번 호출 하는 것을 볼 수 있다.
+```
+@Configuration
+public class AppConfig {
+
+    //리팩토링 결과 각 서비스들의 역할들이 들어나고 각 역할마다 선택할 구현체로 리턴함
+    @Bean
+    public MemberService memberService() {
+        System.out.println("AppConfig.memberService");
+        return new MemberServiceImpl(memberRepository());
+    }
+
+    @Bean
+    public MemberRepository memberRepository() {
+        System.out.println("AppConfig.memberRepository");
+        return new MemoryMemberRepository();
+    }
+
+    @Bean
+    public OrderService orderService() {
+        System.out.println("AppConfig.orderService");
+        return new OrderServiceImpl(
+                 memberRepository(),
+                    discountPolicy()
+        );
+    }
+}
+```
+하지만 memoryRepository를 까보면 모두 같은 인스턴스인 것을 확인 할 수 있다.
+-> @Configuration 어노테이션이 붙은 AppConfig객체를 스프링 빈에 등록하면, 실제 AppConfig 객체가 등록되는 것이 아니라 CGLIB 라이브러리가 붙은 AppConfig 객체를 상속받은 객체가 등록된다. 이 라이브러리가 코드를 조작하여 
+이미 스프링 컨테이너에 등록된 객체는 그 인스턴스를 재활용한다. 따라서 모든 memberRepository는 같은 인스턴스이다.
+

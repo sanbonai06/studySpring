@@ -19,16 +19,19 @@ public class AppConfig {
     //리팩토링 결과 각 서비스들의 역할들이 들어나고 각 역할마다 선택할 구현체로 리턴함
     @Bean
     public MemberService memberService() {
+        System.out.println("AppConfig.memberService");
         return new MemberServiceImpl(memberRepository());
     }
 
     @Bean
     public MemberRepository memberRepository() {
+        System.out.println("AppConfig.memberRepository");
         return new MemoryMemberRepository();
     }
 
     @Bean
     public OrderService orderService() {
+        System.out.println("AppConfig.orderService");
         return new OrderServiceImpl(
                  memberRepository(),
                     discountPolicy()
@@ -37,6 +40,7 @@ public class AppConfig {
 
     @Bean
     public DiscountPolicy discountPolicy() {
-      return new RateDiscountPolicy();
+        System.out.println("AppConfig.discountPolicy");
+        return new RateDiscountPolicy();
     }
 }
