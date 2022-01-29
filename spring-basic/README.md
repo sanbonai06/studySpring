@@ -81,3 +81,42 @@ public class AppConfig {
 -> @Configuration 어노테이션이 붙은 AppConfig객체를 스프링 빈에 등록하면, 실제 AppConfig 객체가 등록되는 것이 아니라 CGLIB 라이브러리가 붙은 AppConfig 객체를 상속받은 객체가 등록된다. 이 라이브러리가 코드를 조작하여 
 이미 스프링 컨테이너에 등록된 객체는 그 인스턴스를 재활용한다. 따라서 모든 memberRepository는 같은 인스턴스이다.
 
+
+## 컴포넌트 스캔
+* 지금까지는 설정파일을 만들어 수동으로 빈을 등록했다. 이번에는 자동 빈 등록을 알아보자.
+```
+@ComponentScan(
+            excludeFilters = @Filter(type = FilterType.ANNOTATION, classes =
+    Configuration.class))
+```
+위와 같이 설정파일에 @ComponentScan 어노테이션과 필터를 붙이면 해당하는 @Component 어노테이션이 붙은 객체들을 읽어온다.
+* 또, 설정파일에서 의존관계주입도 없어졌기 때문에 @Autowired로 의존관계주입을 해주어야한다.
+* 순서: @ComponentScan이 동작하면서, @Component 어노테이션이 붙은 모든 객체들을 스프링 빈에 등록한다. -> @Autowired 어노테이션이 붙은 코드들을 처리하며, 이미 스프링 빈에 등록된 객체를 찾아 의존관계주입을 실행
+-> 기본 조회 전략은 타입이 같은 객체부터..
+* @ComponentScan{ basePackages = "hello.demo" } => 탐색 시작 위치 패키지 지정
+* 권장하는 방법: 따로 패키지 위치를 지정하지 않고 설정 파일 자체를 프로젝트 최상단에 두는 방법.
+
+## 의존관계 주입
+* 4가지 방법: 
+-생성자 주입: 생성자를 통해 바로 의존관계주입을 함, 생성자 호출 시점에 딱 1번 호출되므로 불편, 필수 의존관계에 적용 (생성자가 1개만 있으면 @Autowired가 필요 없음)
+-수정자 주입(setter): 수정자 메서드(setter)를 통해 의존관계주입을 함, 선택, 변경 의존관계에 적용, 주입할 의존관계가 없으면 @Autowired(required=false)로 지정하면 됨.
+-필드 주입
+-일반 메서드 주입
+* 주입 할 의존관계가 없을 때 옵션 처리를 해주면 동작 가능.
+-@Autowired(required=false): 자동 주입할 대상이 없으면 메서드 자체가 호출 X
+-@Nullable: 자동 주입할 대상이 없으면 NULL이 입력됨
+-@Optional<>: 자동 주입할 대상이 없으면 Optional.empty가 입력됨
+* 요즘 실무에서나 스프링 자체가 생성자 주입을 선호하는 추세이다. 
+-대부분의 의존관계들은 애플리케이션 종료 전까지 변하면 안되므로 메서드를 public으로 열어두는 수정자 주입이나 다른 여러가지 방법들 보다는 생성자 주입을 이용하자.
+-생성자 주입을 이용 시 final 키워드를 사용하게 되는데, final키워드는 값의 누락을 컴파일 오류로 막아준다.
+* 롬복 라이브러리를 이용하여 @RequiredArgsConstructor 어노테이션을 이용하면 생성자를 따로 선언할 필요 없이 자동으로 빈등록을 해준다. (실제로는 생성자 코드를 자동으로 입력해 주는 어노테이션)
+* 타입으로 빈 조회시 2개 이상이 조회되면 해결하는 방법
+-@Autowired 필드명을 조회하고 싶은 빈 이름으로 설정해줌 
+```
+@Autowired
+private DiscountPolicy rateDiscountPolicy
+```
+-@Qualifier("mainDiscountPolicy")
+-@Primary를 붙인 객체가 먼저 조회됨
+* 빈으로 다형성을 활용하는 코드를 다룰 때, List, Map을 이용하자.
+		    
