@@ -27,5 +27,7 @@ public class RequestParamServlet extends HttpServlet {
         String age = req.getParameter("age");
         System.out.println("userName = " + userName);
         System.out.println("age = " + age);
+
+        res.getWriter().write("ok");
     }
 }
