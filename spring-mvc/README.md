@@ -57,3 +57,79 @@ dispatcher.forward(req, res);
 -> 공통 처리가 어렵다. 기능이 더 다양한 프로젝트들을 작성할 때는 공통으로 처리해야하는 부분들이 늘어나기 때문에 공통 기능을 메서드로 뽑아야 하는데 문제가 많이 발생하고 또 공통 메서드를 항상 호출하는것 자체도 중복이다.
 
 * 위의 문제점들을 해결하기 위해 수문장 역할을 하는 프론트 컨트롤러 패턴을 도입해야 한다. 따라서 이러한 패턴을 도입한 스프링 MVC를 공부해보도록 하자.
+
+## MVC 프레임워크 만들기
+* V1(프론트 컨트롤러 도입): MVC 패턴에서 발생한 문제점인 공통 처리를 하기위해 프론트 컨트롤러를 도입한다.(프론트 컨트롤러 서블릿 하나가 모든 요청을 받고 요청에 맞는 컨트롤러를 찾아서 호출함)
+
+-> Http 요청 받음 => URL 매핑 정보에서 컨트롤러를 조회함 => 호출된 컨트롤러에서 JSP forward 실행 => JSP가 화면에 뜸
+
+-> URL 매핑 정보에서 컨트롤러 조회 및 호출 방식
+```
+@WebServlet(name = "", urlPatterns = "/front-controller/v1/*")
+
+private Map<String, ControllerV1> controllerMap = new HashMap<>();
+
+    public FrontControllerServletV1() {
+        controllerMap.put("/front-controller/v1/members/new-form", new MemberFormControllerV1());
+        controllerMap.put("/front-controller/v1/members/save", new MemberSaveControllerV1());
+        controllerMap.put("/front-controller/v1/members", new MemberListControllerV1());
+    }
+
+String requestURI = req.getRequestURI();
+ControllerV1 controller = controllerMap.get(requestURI);
+
+if(controller == null) {
+	res.setStatus(404);	//컨트롤러를 못찾으면 잘못된 요청이므로 404에러 반환
+	return;
+}
+
+controller.process(req, res);
+```
+
+* V2(View 분리): V1에서 foward 부분의 중복이 있음 이를 해결하기 위해 view를 분리하자(Myview 생성)
+
+-> Http 요청 받음 => URL 매핑 정보에서 컨트롤러를 조회 및 호출 => 컨트롤러에서 MyView를 반환해줌 => MyView.render()를 호출하면 JSP forward가 자동으로 실행 => JSP가 화면에 뜸
+
+-> MyView 생성자에서 viewPath 변수를 넣어서 받아옴 => viewPath로 forward 실행
+
+* V3(Model 추가): 지금까지는 req.setAttribute를 이용하여 정보를 저장해서 jsp로 넘겼다. 이는 Servlet에 종속적이므로 Map<String, Object> model을 생성하여 사용할 것이다, view 이름도 계속 중복되므로 논리적 이름(Ex.new-form)만 반환할 것이다.
+
+-> Http 요청 받음 => URL 매핑 정보에서 컨트롤러를 조회 및 호출 => ModelView 반환(view의 논리적 이름) => viewResolver를 호출 => MyView를 반환 => view.render(model) 호출 => MyView에서 jsp로 forward => JSP가 화면에 뜸
+
+-> 컨트롤러에서 Servlet의 종속성을 없애기 위해 HttpServletRequest, HttpServletResponse를 사용하지 않고 Map<String, String> paramMap을 사용함: FrontController에서 request로 들어온 파라미터들을 paramMap에 넣어서 컨트롤러를 호출한다.
+```
+private Map<String, String> createParamMap(HttpServletRequest req) {
+        Map<String, String> paramMap = new HashMap<>();
+        req.getParameterNames().asIterator()
+                .forEachRemaining(paramName -> paramMap.put(paramName, req.getParameter(paramName)));
+        return paramMap;
+    }
+Map<String, String> paramMap = createParamMap(req);
+ModelView mv = controller.process(paramMap);
+```
+
+-> ModelView는 View의 논리적 이름만 갖고 있으므로 viewResolver에서 viewPath를 반환하여 MyView.render를 실행시켜야 한다.
+```
+private MyView viewResolver(String viewName) {
+	return new MyView("/WEB-INF/views/" + viewName + ".jsp");	//viewName = "new-form"
+    }
+MyView myView = viewResolver(viewName);
+view.render(mv.getModel(), req, res);
+```
+
+* V4(단순하고 실용적으로): V3은 잘 설계되었지만 사용하는 개발자 입장에선 번거로운 버전이다. 실용성있게 ModelView를 반환하지 말고 ViewName만 반환하자
+
+-> Http 요청 받음 => URL 매핑 정보에서 컨트롤러를 조회 및 호출(이번엔 paramMap뿐만 아니라 model 객체도 인자로) => ViewName만 반환 => viewName을 viewResolver를 불러서 MyView를 반환받음 => MyView.render(model, req, res)를 호출
+
+-> 기존 버전들은 컨트롤러 인터페이스에서 추상메서드를 ModelView  process(Map<String, String> paramMap)로 만들었지만 viewName만 반환하기 위해서 추상메서드를 String process(Map<String, String> paramMap, Map<String, Object> model)로 선언
+
+-> 기존의 MyView.render를 실행하는 방식은 거의 비슷하지만 model 객체를 새로 생성하여 넘겨주어야 한다.
+```
+Map<String, Object> model = new HashMap<>();
+String viewName = controller.process(paramMap, model);
+MyView myView = viewResolver(viewName);
+```
+
+
+
+
