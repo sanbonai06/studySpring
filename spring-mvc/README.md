@@ -92,7 +92,7 @@ controller.process(req, res);
 
 -> MyView 생성자에서 viewPath 변수를 넣어서 받아옴 => viewPath로 forward 실행
 
-* V3(Model 추가): 지금까지는 req.setAttribute를 이용하여 정보를 저장해서 jsp로 넘겼다. 이는 Servlet에 종속적이므로 Map<String, Object> model을 생성하여 사용할 것이다, view 이름도 계속 중복되므로 논리적 이름(Ex.new-form)만 반환할 것이다.
+V* V3(Model 추가): 지금까지는 req.setAttribute를 이용하여 정보를 저장해서 jsp로 넘겼다. 이는 Servlet에 종속적이므로 Map<String, Object> model을 생성하여 사용할 것이다, view 이름도 계속 중복되므로 논리적 이름(Ex.new-form)만 반환할 것이다.
 
 -> Http 요청 받음 => URL 매핑 정보에서 컨트롤러를 조회 및 호출 => ModelView 반환(view의 논리적 이름) => viewResolver를 호출 => MyView를 반환 => view.render(model) 호출 => MyView에서 jsp로 forward => JSP가 화면에 뜸
 
@@ -130,6 +130,11 @@ String viewName = controller.process(paramMap, model);
 MyView myView = viewResolver(viewName);
 ```
 
+* V5(프레임워크를 유연하게 만들기): V3, V4버전을 모두 사용 할 수 있도록 만들자(handlerAdapter)
 
+-> Http 요청 받음 => 핸들러(과거 컨트롤러) 매핑 정보 조회 => 핸들러 어댑터 목록에서 해당 핸들러를 처리할 수 있는 어댑터를 조회 => handlerAdaptor.handle() 실행해서 핸들러를 호출 => ModelView반환
+=> 해당 ModelView에서 viewName을 찾아 viewResolver를 호출 => MyView를 반환받고 해당 MyView에서 render실행 => JSP 화면에 뜸
 
-
+-> 어댑터에서 해당 핸들러가 맞는지 여부와 핸들러를 V3 버전으로 변환 후 실행한다.
+ 
+-> 이전 처럼 핸들러(컨트롤러)만 매핑하는 것이 아니라 어댑터도 리스트에 넣어 초기화 시킨다. 후에 리스트를 순회하면서 해당 핸들러에 맞는 어댑터를 찾는다. 
