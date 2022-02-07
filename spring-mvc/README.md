@@ -140,3 +140,23 @@ MyView myView = viewResolver(viewName);
 -> 이전 처럼 핸들러(컨트롤러)만 매핑하는 것이 아니라 어댑터도 리스트에 넣어 초기화 시킨다. 후에 리스트를 순회하면서 해당 핸들러에 맞는 어댑터를 찾는다. 
 
 -> V4의 컨트롤러같은 경우는 String 형식으로 viewName을 반환시키는데 V3의 컨트롤러는 modelView형식으로 반환시킨다. 여기서 어댑터의 역할은 이러한 반환형식의 차이를 없애고 V4 같은 경우에 modelView형식으로 바꿔주는 역할을 한다.
+
+## Spring-MVC
+
+* 위 챕터에서 우리가 만들어본 mvc 프레임워크는 실제 Spring-mvc와 매우 닮아 있다. 
+
+-> Http요청 => 핸들러 매핑정보에서 핸들러를 조회 => 해당 핸들러를 처리 할 수 있는 핸들러 어댑터 목록을 조회 => 조회한 핸들러 어댑터로 handle(handler) 실행해서 handler를 호출 => ModelAndView(또는 String형태의 viewName)을 반환 => viewResolver호출해서 view를 반환
+=> render호출 => Html 응답
+
+* 우리가 만든 MVC 프레임워크에서의 frontController의 역할을 DispatcherServlet이 수행한다. (DispatcherServlet의 코드 변경 없이 기능을 변경하거나 확장 가능)
+
+* 옛날에는 Controller 인터페이스를 통해서 구현 but, 요즘에는 @Controller 어노테이션을 통해 구현 (스프링 부트가 뜰 때 HandlerMapping, HandlerAdapter가 실행된다. 둘 모두 @RequestMapping을 찾아서 이용한다.)
+
+* viewResolver를 사용할 때 application.properties에 다음과 같은 코드를 추가해야 논리이름 viewName만 반환하여 사용 할 수 있다.
+```
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.suffix=.jsp
+```
+
+
+
