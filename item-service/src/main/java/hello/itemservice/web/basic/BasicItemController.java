@@ -39,6 +39,50 @@ public class BasicItemController {
         return "basic/item";
     }
 
+    @GetMapping("/add")
+    public String addFormItem(Model model) {
+        return "basic/addForm";
+    }
+
+//    @PostMapping("/add")
+//    public String addItemV1(@ModelAttribute("item") Item item, Model model) {
+//        itemRepository.save(item);
+//        model.addAttribute("item", item);
+//        return "/basic/item";
+//    }
+
+    @PostMapping("/add")
+    public String addItem(Item item) {
+        itemRepository.save(item);
+        return "redirect:/basic/items";
+    }
+
+    @GetMapping("/{itemId}/edit")
+    public String editItemForm(Model model, @PathVariable Long itemId) {
+        Item findItem = itemRepository.findById(itemId);
+        model.addAttribute("item", findItem);
+        return "basic/editForm";
+    }
+
+    @PostMapping("/{itemId}/edit")
+    public String editItem(@ModelAttribute Item item, @PathVariable Long itemId, Model model) {
+        itemRepository.update(itemId, item);
+//        List<Item> items = itemRepository.findAll();
+//        model.addAttribute("items", items);
+        return "redirect:/basic/items/{itemId}";
+    }
+
+    @GetMapping("/clear")
+    public String clearItem() {
+        itemRepository.clearStore();
+        return "redirect:/basic/items";
+    }
+
+    @GetMapping("/{itemId}/delete")
+    public String deleteItem(@PathVariable Long itemId) {
+        itemRepository.itemDelete(itemId);
+        return "redirect:/basic/items";
+    }
     //생성자 실행 전에 실행
     /**
      * 테스트용 코드
