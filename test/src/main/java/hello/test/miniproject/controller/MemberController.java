@@ -4,6 +4,7 @@ import hello.test.miniproject.MemberData;
 import hello.test.miniproject.domain.Member;
 import hello.test.miniproject.repository.MemoryMemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/members")
 @RequiredArgsConstructor
@@ -21,6 +23,7 @@ public class MemberController {
 
     @PostMapping("/save")
     public String saveMember(@RequestBody MemberData memberData) {
+        log.info("data = {}", memberData);
         saveValidation(memberData.getName());
         Member member = new Member(memberData.getName(), memberData.getAge());
         memoryMemberRepository.memberSave(member);

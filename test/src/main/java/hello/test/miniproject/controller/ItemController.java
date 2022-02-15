@@ -4,6 +4,7 @@ import hello.test.miniproject.ItemData;
 import hello.test.miniproject.domain.Item;
 import hello.test.miniproject.repository.MemoryItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -21,6 +23,7 @@ public class ItemController {
 
     @PostMapping("/save")
     public String saveItem(@RequestBody ItemData itemData) {
+        log.info("itemData = {}", itemData);
         Item item = new Item(itemData.getName(), itemData.getPrice(), itemData.getQuantity());
         store.itemSave(item);
         return "ok";

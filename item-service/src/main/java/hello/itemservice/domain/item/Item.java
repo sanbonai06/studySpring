@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * @Data는 도메인 객체에 사용하기엔 굉장히 위험하므로 @Getter @Setter를 사용하자
  * DTO에서는 사용해도 괜찮지만 그래도 상황을 보고 쓰자
@@ -18,6 +20,11 @@ public class Item {
     private String itemName;
     private Integer price;
     private Integer quantity;
+
+    private Boolean open;
+    private List<String> regions;
+    private ItemType itemType;
+    private String deliveryCode;
 
     public Item() {
     }

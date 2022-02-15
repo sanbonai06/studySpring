@@ -34,6 +34,10 @@ public class ItemRepository {
         updateItem.setItemName(updateParam.getItemName());
         updateItem.setPrice(updateParam.getPrice());
         updateItem.setQuantity(updateParam.getQuantity());
+        updateItem.setOpen(updateParam.getOpen());
+        updateItem.setItemType(updateParam.getItemType());
+        updateItem.setDeliveryCode(updateParam.getDeliveryCode());
+        updateItem.setRegions(updateParam.getRegions());
     }
 
     public void itemDelete(Long itemId) {
