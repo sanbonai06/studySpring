@@ -89,40 +89,36 @@ th:for="${#ids.prev('regions')}" => 멀티 박스는 HTML 태그에서 name은 �
 ```
 
 ```
+
 <div th:each="type : ${itemTypes}" class="form-check form-check-inline">
 <input type="radio" th:field="*{itemType}" th:value="${type.name()}" class="form-check-input">
 <label th:for="${#ids.prev('itemType')}" th:text="${type.description}" class="form-check-label">BOOK</label>
 </div>
 </div>
 
+```
+
 * 셀렉트 박스
 - 여러 선택지 중 하나를 선택 할 때 사용
 
-```
+```i
+
 package hello.itemservice.domain.item;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+
 @AllArgsConstructor
+
 public class DeliveryCode {
 
     private String code;
+
     private String displayName;
 }
-```
 
-```
-<div>
-            <div>배송 방식</div>
-            <select th:field="*{deliveryCode}" class="form-select">
-                <option value="">==배송 방식 선택==</option>
-                <option th:each="deliveryCode : ${deliveryCodes}" th:value="${deliveryCode.code}" th:text="${deliveryCode.displayName}">
-                    FAST
-                </option>
-            </select>
-        </div>
 ```
 
 * 주의 사항: th:object가 선언되어있는 <form>형태가 없는 HTML 코드에서는 th:field="*{} 가 사용 불가능 => th:field="${item....}"을 이용해야함 
