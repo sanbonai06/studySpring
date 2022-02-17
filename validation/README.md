@@ -66,3 +66,71 @@ bindingResult.rejectValue("price", "range", new Object[]{1000, 1000000}, null);
     public String addItemV6(@Validated @ModelAttribute Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes) {}
 ```
 
+## Bean Validation 처리
+
+* 앞의 코드와 같이 검증 기능을 매번 코드로 작성하기 귀찮고 힘들기 때문에 스프링에서 제공하는 Bean Validation을 활용하자. 
+
+* 먼저 build.gradle에 의존관계를 추가하자
+```
+implementation 'org.springframework.boot:spring-boot-starter-validation'
+```
+* 필드 오류는 객체 자체에서, 글로벌 오류는 컨트롤러에서 자바 코드로 직접 작성하는 것이 효율적
+* 같은 Item 객체로 validation처리를 하면 한계가 발생한다. -> 등록, 수정의 요구사항이 다를 경우 처리가 불가능하다.
+
+=> 해결책: 1. BeanValidation의 groups 기능을 사용하자.
+```
+// 저장용 groups 생성
+public interface SaveCheck {}
+
+// Item 객체 
+@Data
+  public class Item {
+@NotNull(groups = UpdateCheck.class) //수정시에만 적용 private Long id;
+      @NotBlank(groups = {SaveCheck.class, UpdateCheck.class})
+      private String itemName;
+      @NotNull(groups = {SaveCheck.class, UpdateCheck.class})
+      @Range(min = 1000, max = 1000000, groups = {SaveCheck.class,UpdateCheck.class})
+      private Integer price;
+      @NotNull(groups = {SaveCheck.class, UpdateCheck.class})
+      @Max(value = 9999, groups = SaveCheck.class)
+      //등록시에만 적용
+      private Integer quantity;
+//컨트롤러 
+      PostMapping("/add")
+  public String addItemV2(@Validated(SaveCheck.class) @ModelAttribute Item item,
+  BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+//...
+ }
+```
+
+2. Item 객체를 ItemSaveForm, ItemUpdateForm으로 별도의 모델 객체를 만들어 사용하자.(실무에서는 등록이나 수정 시 Item객체의 모든 정보들을 쓰지 않으므로
+		등록과 수정 시 별도의 객체를 만들어서 전달한다.)
+
+- HTML FORM -> ItemSaveForm -> Controller -> Item 생성 -> Repository 
+
+```
+//ItemSaveForm
+//등록 시 필요한 정보들과 Validation 처리 적용
+@Data
+  public class ItemSaveForm {
+      @NotBlank
+      private String itemName;
+      @NotNull
+      @Range(min = 1000, max = 1000000)
+      private Integer price;
+      @NotNull
+      @Max(value = 9999)
+      private Integer quantity;
+  }
+
+//Controller
+PostMapping("/add")
+    public String addItem(@Validated @ModelAttribute("item") ItemSaveForm form,
+BindingResult bindingResult, RedirectAttributes redirectAttributes) {}
+
+```
+- new Item() 으로 새 Item 객체 생성 후 Repository에 넘김.
+
+* @ModelAttribute("item")에서 ("item")이 빠질 경우 itemSaveForm이라는 이름으로 model에 담겨 view로 넘어가기 때문에 주의하자
+
+* @Valid, @Validated는 @RequestBody에도 적용 가능하다. 
