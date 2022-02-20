@@ -14,6 +14,13 @@
 
     <div class="row">
         <div class="col">
+            <button class="btn btn-secondary float-start"
+                    th:onclick="|location.href='@{/}'|"
+                    type="button">홈 화면</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
             <button class="btn btn-primary float-end"
                     onclick="location.href='addForm.html'"
                     th:onclick="|location.href='@{/items/add}'|"
