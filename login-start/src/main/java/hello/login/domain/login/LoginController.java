@@ -69,7 +69,7 @@ public class LoginController {
         return "redirect:/";
     }
 
-    @PostMapping("/login")
+    //@PostMapping("/login")
     public String loginMemberV3(@Valid @ModelAttribute("loginForm") LoginForm loginForm,
                                 BindingResult bindingResult, HttpServletRequest req, HttpServletResponse res) {
 
@@ -90,6 +90,28 @@ public class LoginController {
 
         return "redirect:/";
     }
+
+    @PostMapping("/login")
+    public String loginMemberV4(@Valid @ModelAttribute("loginForm") LoginForm loginForm,
+                                BindingResult bindingResult, @RequestParam(defaultValue = "/") String redirectURL,
+                                HttpServletRequest req, HttpServletResponse res) {
+
+        if (bindingResult.hasErrors()) {
+            return "login/loginForm";
+        }
+
+        Member member = loginService.login(loginForm.getLoginId(), loginForm.getPassword());
+        if (member == null) {
+            bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+            return "login/loginForm";
+        }
+
+        HttpSession session = req.getSession();
+        session.setAttribute(SessionConst.LOGIN_MEMBER, member);
+
+        return "redirect:" + redirectURL;
+    }
+
 
 //    @PostMapping("/logout")
     public String logoutMember(HttpServletResponse res) {
